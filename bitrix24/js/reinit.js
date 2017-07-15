@@ -1,4 +1,4 @@
-    console.log('window.location.hash', window.location.hash);
+    //console.log('window.location.hash', window.location.hash);
     //    console.log(BX24.placement.info());
 
     function doYmap(name, value) {
