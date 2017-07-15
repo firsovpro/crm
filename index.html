@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CRM Agent21</title>
+    <!--
+    <script src="https://api.bitrix24.com/api/v1/"></script>
+/-->
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <link rel="stylesheet" href="/bitrix24/js/jquery/jquery.mobile-1.4.5.min.css" type="text/css" charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="/bitrix24/js/dhtmlx/dhtmlx.css" />
+    <link rel="stylesheet" href="/bitrix24/css/skins/terrace/dhtmlx.css" />
+    <link rel="stylesheet" href="/bitrix24/font/fontawesome/css/font-awesome.min.css">
+    <script language="Javascript" type="text/javascript" src="/bitrix24/js/jquery/jquery.min.js"></script>
+    <script language="Javascript" type="text/javascript" src="/bitrix24/js/jquery/jquery.mobile-1.4.5.min.js"></script>
+    <script language="Javascript" type="text/javascript" src="/bitrix24/js/jquery/inputmask/inputmask.js"></script>
+    <script language="Javascript" type="text/javascript" src="/bitrix24/js/jquery/inputmask/jquery.inputmask.js"></script>
+    <script src="/bitrix24/js/jquery/inputmask/inputmask.extensions.js"></script>
+    <script src="/bitrix24/js/jquery/inputmask/inputmask.numeric.extensions.js"></script>
+    <script src="/bitrix24/js/jquery/inputmask/inputmask.date.extensions.js"></script>
+    <script src="/bitrix24/js/jquery/inputmask/inputmask.phone.extensions.js"></script>
+    <script src="/bitrix24/js/jquery/inputmask/phone-codes/phone-ru.js"></script>
+
+
+    <script src="/bitrix24/js/dhtmlx/dhtmlx.js"></script>
+    <script src="/bitrix24/js/dhtmlx/dhtmlxgrid.js"></script>
+    <script src="/bitrix24/js/smallspr.js"></script>
+    <link rel="stylesheet" href="/bitrix24/css/main.css">
+</head>
+
+<body>
+    <div data-role="page" id="page" class='page'>
+        <div data-role='header' data-position="fixed">
+            <table style='width:100%'>
+                <tr>
+                    <td style="white-space: nowrap;">
+                    </td>
+                    <td style='width:99%' class='mainMenu'>
+                        <a href="#user">
+                            <i class="fa fa-user fa6" aria-hidden="true" item="Пользователи"></i>
+                        </a>
+                        <a href="#info">
+                            <i class="fa fa-address-card-o fa6" item="Персоны" aria-hidden="true"></i>
+                        </a>
+                        <a href="#object">
+                            <i class="fa fa-map-o fa6" item="Обьекты" aria-hidden="true"></i>
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div data-role='content' class="content" name="mainDivW" id="mainDivW">
+        </div>
+        <div data-role="footer" data-position="fixed">
+            Подвал
+        </div>
+    </div>
+    <script src="/bitrix24/js/dataLoader.js"></script>
+    <script src="/bitrix24/js/reinit.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('.fa').click(function() {
+                console.log(window.location.href);
+                console.log($(this).parent().prop('href'));
+                window.location.href = $(this).parent().prop('href');
+            });
+        });
+    </script>
+</body>
+
+</html>
