@@ -21,20 +21,22 @@
     function waitGet(inurl, table, postParam, fun) {
         // входные параметры inurl - масив урлов для get запроса или строка для пост
         var outArr = [];
-        if (!localStorage.getItem('items')) localStorage.setItem('items', JSON.stringify([]));
+        if (!localStorage.getItem('items')) localStorage.setItem('items', JSON.stringify({}));
         if (test) {
             // если гет запрос
             for (var i = 0; i < inurl.length; i++) {
                 if (inurl[i] == 'list') {
+                    var list = JSON.parse(localStorage.getItem('items'));
                     var d = {
                         id: inurl[i],
-                        data: JSON.parse(localStorage.getItem('items'))
+                        data: list[table[i]]
                     };
                     outArr.push(d);
                 }
                 if (inurl[i] == 'add') {
                     var items = JSON.parse(localStorage.getItem('items'));
-                    items.push(postParam);
+                    if (items[table[i]] == null) items[table[i]] = [];
+                    items[table[i]].push(postParam);
                     localStorage.setItem('items', JSON.stringify(items));
                     var d = {
                         id: inurl[i],
@@ -328,7 +330,10 @@
 
                     outOB.kont.push(k_);
                 }
-                console.log(outOB);
+
+                waitGet(['add'], ['klient'], outOB, function(data) {
+                    console.log(data);
+                })
 
             }
             if (name == 'addKont') {
