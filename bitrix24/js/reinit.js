@@ -22,7 +22,7 @@
         // входные параметры inurl - масив урлов для get запроса или строка для пост
         var outArr = [];
         if (!localStorage.getItem('items')) localStorage.setItem('items', JSON.stringify({}));
-        if (test) {
+        if (1==1) {
             // если гет запрос
             for (var i = 0; i < inurl.length; i++) {
                 if (inurl[i] == 'list') {
@@ -465,17 +465,43 @@
 
         var gridSobst = sobstTab.tabs('a1').attachGrid();
         gridSobst.setImagePath("js/dhtmlx/codebase/imgs/");
-        gridSobst.setHeader("&nbsp;,Собственник,dataOld");
-        gridSobst.setInitWidths("30,*");
-        gridSobst.setColAlign("left,left,left");
-        gridSobst.setColTypes("sub_row,ro,ro");
+        gridSobst.setHeader("&nbsp;,Собственник");
+        gridSobst.setInitWidths("50,*");
+        gridSobst.setColAlign("left,left");
+        gridSobst.setColTypes("sub_row,ro");
         //gridSobst.setColSorting("str,str");                    
-        gridSobst.setColumnIds("col0,col1,col3");
-        gridSobst.setNoHeader(true);
+        gridSobst.setColumnIds("col0,col1");
+//        gridSobst.setNoHeader(true);
         gridSobst.init();
-        gridSobst.setColumnHidden(2, true);
+        //gridSobst.setColumnHidden(2, true);
+        waitGet(['list'], ['klient'], null, function(data) {
+            console.log('klient',data)
+            var rows = {
+                rows: []
+            };
+                for (var i = 0; i < data.length; i++) {
+                    console.log(data[0]);
+                    for (var e=0;e<data[i].data.length;e++){
+                        gridSobst.addRow(data[i].data[e].UID,[data[i].data[e].TITLE,data[i].data[e].TITLE]);
+                        gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
+                        rows.rows.push({
+                            id: data[i].data[e].UID,
+                            data: [
+                                data[i].data[e].TITLE,
+                                data[i].data[e].TITLE,
+                            ]
+                        });
+                    }
+//                    gridSobst.parse(rows, "json");
+//                    gridSobst.UserData.inData = data;
 
+                }
+        })
 
+        gridSobst.attachEvent("onSubRowOpen", function(id,state){
+            console.log(id,this);
+            
+        });
 
         sobstTab.addTab(
             "a2", // id
