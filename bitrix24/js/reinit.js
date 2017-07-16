@@ -5,17 +5,10 @@
         //    var f = this.getForm();
         return '<div id="divMap" name="divMap" style="width:280px;height:210px;border:1px solid"></div>';
     }
-
-
-
-
     var myWins = null;
-
     window.onhashchange = function() {
         window.location.reload(true);
     }
-
-
 
     function S4() {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
