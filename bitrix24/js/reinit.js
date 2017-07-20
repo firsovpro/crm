@@ -340,6 +340,9 @@
                 createFormKont($(formNsob._getItemByName('divKont')));
             }
         });
+        if(id){
+            
+        }
     }
 
     function editObject() {
@@ -465,42 +468,79 @@
 
         var gridSobst = sobstTab.tabs('a1').attachGrid();
         gridSobst.setImagePath("js/dhtmlx/codebase/imgs/");
-        gridSobst.setHeader("&nbsp;,Собственник");
-        gridSobst.setInitWidths("50,*");
-        gridSobst.setColAlign("left,left");
-        gridSobst.setColTypes("sub_row,ro");
+        gridSobst.setHeader("&nbsp;,Собственник,Управление");
+        gridSobst.setInitWidths("50,*,110");
+        gridSobst.setColAlign("left,left,left");
+        gridSobst.setColTypes("sub_row,ro,ro");
         //gridSobst.setColSorting("str,str");                    
-        gridSobst.setColumnIds("col0,col1");
-//        gridSobst.setNoHeader(true);
+        gridSobst.setColumnIds("col0,col1,col1");
+        gridSobst.setNoHeader(true);
         gridSobst.init();
         //gridSobst.setColumnHidden(2, true);
         waitGet(['list'], ['klient'], null, function(data) {
             console.log('klient',data)
-            var rows = {
-                rows: []
-            };
-                for (var i = 0; i < data.length; i++) {
-                    console.log(data[0]);
-                    for (var e=0;e<data[i].data.length;e++){
-                        gridSobst.addRow(data[i].data[e].UID,[data[i].data[e].TITLE,data[i].data[e].TITLE]);
-                        gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
-                        rows.rows.push({
-                            id: data[i].data[e].UID,
-                            data: [
-                                data[i].data[e].TITLE,
-                                data[i].data[e].TITLE,
-                            ]
-                        });
-                    }
-//                    gridSobst.parse(rows, "json");
-//                    gridSobst.UserData.inData = data;
-
+            for (var i = 0; i < data.length; i++) {
+                console.log(data[0]);
+                for (var e=0;e<data[i].data.length;e++){
+                    gridSobst.addRow(data[i].data[e].UID,[
+                        data[i].data[e].TITLE,
+                        data[i].data[e].TITLE,
+                        '<a href="javascript:void(0)" UID="'+data[i].data[e].UID+'">Подробнее</a>'
+                    ]);
+                    gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
                 }
+            }
         })
 
+gridSobst.attachEvent("onRowCreated", function(rId,rObj,rXml){
+    console.log('---------------',rObj);
+});
+
         gridSobst.attachEvent("onSubRowOpen", function(id,state){
-            console.log(id,this);
-            
+            if(state){
+                if($('#row_'+id).length == 0) {
+                    this.cells(id,0).setContent('<div id="row_'+id+'" name="row_'+id+'"></div>');
+                    // создаём карточку предосмотра контактов
+                    var divG = $('#row_'+id);
+                    dhxForm = new dhtmlXForm('row_'+id, [
+                            {type:"settings",position:"label-left"},
+                            {type:"block", name:"kont", list: []},
+                        ]);                    
+                    var kont = this.UserData[id].allField.kont;
+                    for(var i=0;i<kont.length;i++){
+                        dhxForm.addItem('kont', {
+                            type: "block",
+                            name: "kont_" + i,
+                            blockOffset: 0,
+                            offsetLeft: 0,
+                            list: [
+                                {type:"label", label:kont[i].TITLE},
+                                {type:"block", name:"phone_"+i, blockOffset: 0,offsetLeft: 0,list: []},
+//                                {type:"newcolumn"},
+//                                {type:"block", name:"email_", blockOffset: 0,offsetLeft: 0,list: []},
+                            ]
+                        });
+                        for(var e=0;e<kont[i].PHONE.length;e++){
+                            dhxForm.addItem('phone_'+i, {
+                                type: "block",
+                                blockOffset: 0,
+                                offsetLeft:8,
+                                list: [
+                                    {type:"label", name:"kontF",labelLeft:0, labelWidth:140,label:kont[i].PHONE[e].LABEL},
+                                    {type:"newcolumn"},
+                                    {type:"label", name:"kontS", labelLeft:0,label:kont[i].PHONE[e].VALUE},
+                                ]
+                            });
+                            
+                        }                        
+                        
+                        
+                    }
+                    this.cells(id,0).resize();
+
+                    console.log(this.UserData[id].allField.kont);
+                }    
+            }
         });
 
         sobstTab.addTab(

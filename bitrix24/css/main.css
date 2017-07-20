@@ -329,3 +329,14 @@ div.gridbox_material.gridbox table.obj tr td {
 .mainMenu{
 	text-align:right;
 }
+
+
+.dhxform_txt_label2 {
+    font-family: Arial,Helvetica !important;
+    font-size: 12px !important;
+    color: black !important;
+    font-weight: normal !important;
+    margin: 0 3px !important;
+    padding: 0px 0 !important;
+    cursor: default !important;
+}
