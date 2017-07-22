@@ -46,21 +46,32 @@
                 }
                 if (inurl[i] == 'edit') {
                     var items = JSON.parse(localStorage.getItem('items'));
-                    var d = {
-                        id: inurl[i],
-                        data: items[postParam]
-                    };
-                    outArr.push(d);
+                    if (items[table[i]] == null) items[table[i]] = [];
+
+                    for(var e=0;e<items[table[i]].length;e++){
+                        if(items[table[i]][e].UID==postParam){
+                            var d = {
+                                id: inurl[i],
+                                data: items[table[i]][e]
+                            };
+                            outArr.push(d);
+                        }
+                    }
                 }
                 if (inurl[i] == 'save') {
                     var items = JSON.parse(localStorage.getItem('items'));
-                    items[postParam.id] = postParam;
+                    if (items[table[i]] == null) items[table[i]] = [];
+                    for(var e=0;e<items[table[i]].length;e++){
+                        if(items[table[i]][e].UID==postParam['UID']){
+                            items[table[i]][e] = postParam;
+                            var d = {
+                                id: inurl[i],
+                                data: items[table[i]][e]
+                            };
+                            outArr.push(d);
+                        }
+                    }
                     localStorage.setItem('items', JSON.stringify(items));
-                    var d = {
-                        id: inurl[i],
-                        data: items[postParam.id]
-                    };
-                    outArr.push(d);
                 }
 
             }
@@ -70,13 +81,16 @@
 
 
 
-    function createFormKont(p) {
+    function createFormKont(p,item) {
         p = $(p);
         if ($(p).data('kont') == undefined) {
             $(p).data('kont', []);
         }
-        var c = $(p).children();
-        var div = $('<div id="kont' + c + '" name="kont' + c + '">').appendTo(p);
+        var c = $(p).children().length;
+        var div = $('<div id="kont' + c + '" name="kont' + c + '" class="boxShadow2" >').appendTo(p);
+            div.data('kont',$(p).data('kont'));
+        div.css('margin-bottom','8px');
+        
         var fk = new dhtmlXForm("kont" + c, [{
             type: "block",
             inputWidth: "auto",
@@ -85,7 +99,17 @@
             offsetLeft: 0,
             list: [
 
-                { type: "input", name: 'TITLE', label: 'Наименование', value: '', readonly: false, inputWidth: 300, labelWidth: 120 },
+                {
+                    type: "block",
+                    inputWidth: "auto",
+                    blockOffset: 0,
+                    offsetLeft: 0,
+                    list: [
+                            { type: "input", name: 'TITLE', label: 'Наименование', value: '', readonly: false, inputWidth: 500, labelWidth: 120 },
+                            { type: "newcolumn" },
+                            { type: "button", name: "btnDelKont", value: "-" }
+                        ]
+                },
 
                 {
                     type: "block",
@@ -104,7 +128,7 @@
                                     name: 'phone',
                                     offsetLeft: 0,
                                     list: [
-                                        { type: "label", label: 'Телефон', labelWidth: 'auto' },
+                                        { type: "label", label: 'Телефон',className:'labelBut', labelWidth: 'auto' },
                                         { type: "newcolumn" },
                                         { type: "button", name: "btnAddPhone", value: "+" }
 
@@ -135,7 +159,7 @@
                             type: "block",
                             inputWidth: "auto",
                             blockOffset: 0,
-                            offsetLeft: 0,
+                            offsetLeft: 10,
                             list: [{
                                     type: "block",
                                     inputWidth: "auto",
@@ -143,7 +167,7 @@
                                     name: 'email',
                                     offsetLeft: 0,
                                     list: [
-                                        { type: "label", label: 'Email', labelWidth: 'auto' },
+                                        { type: "label", label: 'Email',className:'labelBut', labelWidth: 'auto' },
                                         { type: "newcolumn" },
                                         { type: "button", name: "btnAddEmail", value: "+" }
 
@@ -174,9 +198,27 @@
                     ]
                 },
             ]
-        }, ])
+        }, ]);
+        
+        div.data('kont',$(p).data('kont'));
+        div.data('form',fk);
+
+        
         $(fk.getInput('PHONE_0')).inputmask("+7(999) 999-99-99");
         fk.attachEvent("onButtonClick", function(name) {
+            
+            if (name=='btnDelKont') {
+                // удаляем контакт
+                var form = $(this.cont).data('form');
+                var forms = $(this.cont).data('kont');
+                for(var i=forms.length;i>=0;i--){
+                    if(forms[i]==form){
+                        forms.splice(i, 1);
+                    }
+                }
+                $(this.cont).detach();
+                return;
+            }
             if (name.indexOf('btnDelEmail') != -1) {
                 var e = name.replace('btnDelEmail', '');
                 this.removeItem('EMAIL_BL' + e);
@@ -231,12 +273,59 @@
             }
 
         });
+        console.log(fk);
         $(p).data('kont').push(fk);
+        if(item){
+            console.log('item',item);
+            for(var i=0;i<item.kont.length;i++){
+                if(i>0){
+                    formNsob.callEvent("onButtonClick", ['addKont']);
+                }
+
+                for (var prop in item.kont[i]) {
+                    if ($(p).data('kont')[i].isItem(prop)) {
+                        $(p).data('kont')[i].setItemValue(prop, item.kont[i][prop]);
+                    }
+                }
+                var phone = item.kont[i].PHONE;
+                for(var e=0;e<phone.length;e++){
+                    if(e>0){
+                        $(p).data('kont')[i].callEvent("onButtonClick", ['btnAddPhone']);
+                    }
+                    if($(p).data('kont')[i].isItem('PHONELABEL_'+e)){
+                        $(p).data('kont')[i].setItemValue('PHONELABEL_'+e,phone[e].LABEL);
+                        
+                    }
+                    if($(p).data('kont')[i].isItem('PHONE_'+e)){
+                        $(p).data('kont')[i].setItemValue('PHONE_'+e,phone[e].VALUE);
+                        
+                    }
+                }
+
+                var phone = item.kont[i].EMAIL;
+                for(var e=0;e<phone.length;e++){
+                    if(e>0){
+                        $(p).data('kont')[i].callEvent("onButtonClick", ['btnAddEmail']);
+                    }
+                    if($(p).data('kont')[i].isItem('EMAILLABEL_'+e)){
+                        $(p).data('kont')[i].setItemValue('EMAILLABEL_'+e,phone[e].LABEL);
+                        
+                    }
+                    if($(p).data('kont')[i].isItem('EMAIL_'+e)){
+                        $(p).data('kont')[i].setItemValue('EMAIL_'+e,phone[e].VALUE);
+                        
+                    }
+                }
+
+
+            }
+            
+        }
         console.log($(p).data('kont').length);
 
     }
-
-    function winSobst(id) {
+    var formNsob = null;
+    function winSobst(id,editflag) {
         myWins = new dhtmlXWindows({
             image_path: "/bitrix24/js/dhtmlx/imgs/",
             skin: "dhx_material"
@@ -246,12 +335,17 @@
             id: "newOrg",
             left: 20,
             top: 30,
-            width: 1000,
+            width: 900,
             height: 780,
             center: true,
             modal: true,
         });
         myWins.window('newOrg').centerOnScreen();
+        if(!id){
+            uid = generateUID();
+        }else{
+            uid=id;
+        }
         var lw = 110;
         var iw = 470;
         var formJson = [{
@@ -262,7 +356,7 @@
             offsetLeft: 5,
             list: [
                 { type: "button", name: "save", value: "Сохранить" },
-                { type: "hidden", name: "UID", value: generateUID() },
+                { type: "hidden", name: "UID", value: uid },
 
                 { type: "input", name: 'TITLE', label: 'Наименование', value: '', readonly: false, inputWidth: iw, labelWidth: lw },
                 { type: "input", name: 'REM', label: 'Комментарий', value: '', readonly: false, inputWidth: iw, labelWidth: lw, inputHeight: 60, rows: 3 },
@@ -297,7 +391,7 @@
 
             ]
         }, ];
-        var formNsob = myWins.window('newOrg').attachForm(formJson);
+        formNsob = myWins.window('newOrg').attachForm(formJson);
         formNsob.attachEvent("onButtonClick", function(name) {
             if (name == 'save') {
                 var outOB = formNsob.getFormData();
@@ -330,18 +424,33 @@
 
                     outOB.kont.push(k_);
                 }
-
-                waitGet(['add'], ['klient'], outOB, function(data) {
-                    console.log(data);
-                })
-
+                 console.log(outOB);
+                
+                if(!id){
+                    waitGet(['add'], ['klient'], outOB, function(data) {
+                        console.log(data);
+                    })
+                }else{
+                    waitGet(['save'], ['klient'], outOB, function(data) {
+                        console.log(data);
+                    })
+                    
+                }
             }
             if (name == 'addKont') {
                 createFormKont($(formNsob._getItemByName('divKont')));
             }
         });
         if(id){
-            
+            waitGet(['edit'],['klient'],id,function(data) {
+                var item =  data[0].data;
+                for (var prop in item) {
+                    if (formNsob.isItem(prop)) {
+                        formNsob.setItemValue(prop, item[prop]);
+                    }
+                }
+                createFormKont($(formNsob._getItemByName('divKont')),item);
+            })
         }
     }
 
@@ -469,7 +578,7 @@
         var gridSobst = sobstTab.tabs('a1').attachGrid();
         gridSobst.setImagePath("js/dhtmlx/codebase/imgs/");
         gridSobst.setHeader("&nbsp;,Собственник,Управление");
-        gridSobst.setInitWidths("50,*,110");
+        gridSobst.setInitWidths("50,*,140");
         gridSobst.setColAlign("left,left,left");
         gridSobst.setColTypes("sub_row,ro,ro");
         //gridSobst.setColSorting("str,str");                    
@@ -485,26 +594,27 @@
                     gridSobst.addRow(data[i].data[e].UID,[
                         data[i].data[e].TITLE,
                         data[i].data[e].TITLE,
-                        '<a href="javascript:void(0)" UID="'+data[i].data[e].UID+'">Подробнее</a>'
+                        '<a href="javascript:void(0)" UID="'+data[i].data[e].UID+'" onclick="winSobst('+"'"+data[i].data[e].UID+"'"+')">Подробнее</a>'
                     ]);
                     gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
                 }
             }
         })
 
-gridSobst.attachEvent("onRowCreated", function(rId,rObj,rXml){
-    console.log('---------------',rObj);
-});
+        gridSobst.attachEvent("onRowCreated", function(rId,rObj,rXml){
+            console.log('---------------',rObj);
+        });
 
         gridSobst.attachEvent("onSubRowOpen", function(id,state){
             if(state){
                 if($('#row_'+id).length == 0) {
-                    this.cells(id,0).setContent('<div id="row_'+id+'" name="row_'+id+'"></div>');
+                    this.cells(id,0).setContent('<div id="row_'+id+'" name="row_'+id+'" ></div>');
                     // создаём карточку предосмотра контактов
                     var divG = $('#row_'+id);
                     dhxForm = new dhtmlXForm('row_'+id, [
                             {type:"settings",position:"label-left"},
                             {type:"block", name:"kont", list: []},
+                            {type:"Container", name:"ots",inputHeight:30},
                         ]);                    
                     var kont = this.UserData[id].allField.kont;
                     for(var i=0;i<kont.length;i++){
@@ -672,16 +782,58 @@ gridSobst.attachEvent("onRowCreated", function(rId,rObj,rXml){
                                 });            
         */
     }
-
+    $( window ).resize(function() {
+        var t = $('.footer').offset().top - 90;
+        $('#mainDivW').css('height',t+'px');
+    });
+    
     $(document).ready(function() {
         // подгружаем или главную или остальные
         ymaps.ready(function() {
             switch (window.location.hash) {
                 case '#object':
                     $(".content").empty();
-                    editObject();
-
+                    var t = $('.footer').offset().top - 90;
+                    $('#mainDivW').css('height',t+'px');
+                    mapG = new ymaps.Map('mainDivW', {
+                        center: [55.76, 37.64],
+                        zoom: 9,
+                        controls: []
+                    });
+//                    editObject();
                     break;
+                case '#info':
+                    $(".content").empty();
+                    // выводим грид собственников
+                    var t = $('.footer').offset().top - 90;
+                    $('#mainDivW').css('height',t+'px');
+                    var gridSobst = new dhtmlXGridObject($('#mainDivW')[0]);
+                    gridSobst.setImagePath("js/dhtmlx/codebase/imgs/");
+                    gridSobst.setHeader("&nbsp;,Собственник,Управление");
+                    gridSobst.setInitWidths("50,*,140");
+                    gridSobst.setColAlign("left,left,left");
+                    gridSobst.setColTypes("sub_row,ro,ro");
+                    //gridSobst.setColSorting("str,str");                    
+                    gridSobst.setColumnIds("col0,col1,col1");
+                    gridSobst.setNoHeader(true);
+                    gridSobst.init();
+                    //gridSobst.setColumnHidden(2, true);
+                    waitGet(['list'], ['klient'], null, function(data) {
+                        console.log('klient',data)
+                        for (var i = 0; i < data.length; i++) {
+                            console.log(data[0]);
+                            for (var e=0;e<data[i].data.length;e++){
+                                gridSobst.addRow(data[i].data[e].UID,[
+                                    data[i].data[e].TITLE,
+                                    data[i].data[e].TITLE,
+                                    '<a href="javascript:void(0)" UID="'+data[i].data[e].UID+'" onclick="winSobst('+"'"+data[i].data[e].UID+"'"+')">Подробнее</a>'
+                                ]);
+                                gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
+                            }
+                        }
+                    })
+                    break;
+
                 default:
 
                     break;

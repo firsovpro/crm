@@ -1,6 +1,6 @@
             .ui-mobile label, div.ui-controlgroup-label{
                 font-weight: normal;
-                font-size: 13px;
+                font-size: 11px;
             }
 			.ui-footer{
 				min-width: 300px; 
@@ -37,7 +37,7 @@
 				color: #333;
 				text-shadow: 0 1px 0 #eee;
 				font-weight: normal;
-				font-size:13px;
+				font-size:11px;
 			}		
 			.mainItem {
 			    padding:12px 12px 12px 12px;
@@ -313,6 +313,12 @@ div.gridbox_material.gridbox table.obj tr td {
     .blockKont > .dhxform_block {
     	border:1px solid #000000;
     	padding:8px;
+  box-shadow:
+   0 1px 4px rgba(0, 0, 0, .3),
+   -23px 0 20px -23px rgba(0, 0, 0, .8),
+   23px 0 20px -23px rgba(0, 0, 0, .8),
+   0 0 40px rgba(0, 0, 0, .1) inset;
+    	
     }
     
 
@@ -339,4 +345,40 @@ div.gridbox_material.gridbox table.obj tr td {
     margin: 0 3px !important;
     padding: 0px 0 !important;
     cursor: default !important;
+}
+
+.dhxform_btn{
+	border-radius:50px !important;
+	min-width:30px !important;
+	background-color:#786b59 !important;
+	color:#ffffff!important;
+	cursor:pointer!important;
+}
+
+.dhxform_btn_txt{
+	margin: 0 9px  !important;
+	float: none !important;
+}
+
+.boxShadow2 {
+  width: 80%;
+  max-width: 550px;
+  margin: 10px auto;
+  padding: 1em;
+  box-shadow:
+   0 1px 4px rgba(0, 0, 0, .3),
+   -23px 0 20px -23px rgba(0, 0, 0, .8),
+   23px 0 20px -23px rgba(0, 0, 0, .8),
+   0 0 40px rgba(0, 0, 0, .1) inset;
+}
+.dhxform_obj_dhx_terrace input.dhxform_textarea, .dhxform_obj_dhx_terrace textarea.dhxform_textarea {
+    font-size: 12px!important;
+}
+
+.labelBut .topmost{
+	margin-top:9px !important;;
+}
+
+.dhx_sub_row{
+	padding-bottom:23px  !important;
 }
