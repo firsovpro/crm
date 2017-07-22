@@ -455,6 +455,18 @@
     }
 
     function editObject() {
+        $('.uprMenu').empty();
+        var a = $('<href="javascript:void(0)" ><i class="fa fa-floppy-o fa6" aria-hidden="true" item="Добавить обьект"></i></a>' ).appendTo($(".uprMenu"));
+        a.click(function(){
+            
+        });
+        var a = $('<href="javascript:void(0)" style="margin-left:12px" ><i class="fa fa-undo fa6" aria-hidden="true" item="Добавить обьект"></i></a>' ).appendTo($(".uprMenu"));
+        a.click(function(){
+            redrawObject();
+        });
+
+        
+        $(".content").empty();
         $("<div id='divTab' name='divTab'></div>").appendTo($(".content"));
         $("<div id='formAddr' name='formAddr'></div>").appendTo($(".content"));
 
@@ -787,51 +799,63 @@
         $('#mainDivW').css('height',t+'px');
     });
     
+    function redrawObject(){
+        $('.uprMenu').empty();
+        var a = $('<href="javascript:void(0)" ><i class="fa fa-plus fa6" aria-hidden="true" item="Добавить обьект"></i></a>' ).appendTo($(".uprMenu"));
+        a.click(function(){
+            editObject();
+        });
+        $(".content").empty();
+        var t = $('.footer').offset().top - 90;
+        $('#mainDivW').css('height',t+'px');
+        mapG = new ymaps.Map('mainDivW', {
+            center: [55.76, 37.64],
+            zoom: 9,
+            controls: []
+        });
+    }
+
+    function redrawListSobst(){
+        $(".content").empty();
+        // выводим грид собственников
+        var t = $('.footer').offset().top - 90;
+        $('#mainDivW').css('height',t+'px');
+        var gridSobst = new dhtmlXGridObject($('#mainDivW')[0]);
+        gridSobst.setImagePath("js/dhtmlx/codebase/imgs/");
+        gridSobst.setHeader("&nbsp;,Собственник,Управление");
+        gridSobst.setInitWidths("50,*,140");
+        gridSobst.setColAlign("left,left,left");
+        gridSobst.setColTypes("sub_row,ro,ro");
+        //gridSobst.setColSorting("str,str");                    
+        gridSobst.setColumnIds("col0,col1,col1");
+        gridSobst.setNoHeader(true);
+        gridSobst.init();
+        //gridSobst.setColumnHidden(2, true);
+        waitGet(['list'], ['klient'], null, function(data) {
+            console.log('klient',data)
+            for (var i = 0; i < data.length; i++) {
+                console.log(data[0]);
+                for (var e=0;e<data[i].data.length;e++){
+                    gridSobst.addRow(data[i].data[e].UID,[
+                        data[i].data[e].TITLE,
+                        data[i].data[e].TITLE,
+                        '<a href="javascript:void(0)" UID="'+data[i].data[e].UID+'" onclick="winSobst('+"'"+data[i].data[e].UID+"'"+')">Подробнее</a>'
+                    ]);
+                    gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
+                }
+            }
+        })
+    }
+    
     $(document).ready(function() {
         // подгружаем или главную или остальные
         ymaps.ready(function() {
             switch (window.location.hash) {
                 case '#object':
-                    $(".content").empty();
-                    var t = $('.footer').offset().top - 90;
-                    $('#mainDivW').css('height',t+'px');
-                    mapG = new ymaps.Map('mainDivW', {
-                        center: [55.76, 37.64],
-                        zoom: 9,
-                        controls: []
-                    });
-//                    editObject();
+                    redrawObject();
                     break;
                 case '#info':
-                    $(".content").empty();
-                    // выводим грид собственников
-                    var t = $('.footer').offset().top - 90;
-                    $('#mainDivW').css('height',t+'px');
-                    var gridSobst = new dhtmlXGridObject($('#mainDivW')[0]);
-                    gridSobst.setImagePath("js/dhtmlx/codebase/imgs/");
-                    gridSobst.setHeader("&nbsp;,Собственник,Управление");
-                    gridSobst.setInitWidths("50,*,140");
-                    gridSobst.setColAlign("left,left,left");
-                    gridSobst.setColTypes("sub_row,ro,ro");
-                    //gridSobst.setColSorting("str,str");                    
-                    gridSobst.setColumnIds("col0,col1,col1");
-                    gridSobst.setNoHeader(true);
-                    gridSobst.init();
-                    //gridSobst.setColumnHidden(2, true);
-                    waitGet(['list'], ['klient'], null, function(data) {
-                        console.log('klient',data)
-                        for (var i = 0; i < data.length; i++) {
-                            console.log(data[0]);
-                            for (var e=0;e<data[i].data.length;e++){
-                                gridSobst.addRow(data[i].data[e].UID,[
-                                    data[i].data[e].TITLE,
-                                    data[i].data[e].TITLE,
-                                    '<a href="javascript:void(0)" UID="'+data[i].data[e].UID+'" onclick="winSobst('+"'"+data[i].data[e].UID+"'"+')">Подробнее</a>'
-                                ]);
-                                gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
-                            }
-                        }
-                    })
+                    redrawListSobst();
                     break;
 
                 default:
