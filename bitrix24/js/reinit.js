@@ -1,5 +1,25 @@
     //console.log('window.location.hash', window.location.hash);
     //    console.log(BX24.placement.info());
+    function suggestViewchange(e) {
+        var activeIndex = suggestView.state.get('activeIndex');
+        if (typeof activeIndex == 'number') {
+            activeItem = suggestView.state.get('items')[activeIndex];
+            if (activeItem) {
+                var myGeocoder = ymaps.geocode(activeItem.value);
+                myGeocoder.then(
+                        function (res) {
+                            v = res.geoObjects.get(0).geometry.getCoordinates();
+                            mapG.setCenter(v, 16);
+                        }
+                    ,
+                    function (err) {
+                        console.log('Ошибка');
+                    }
+                );
+            }
+        }
+    }
+
 
     function doYmap(name, value) {
         //    var f = this.getForm();
@@ -61,9 +81,15 @@
                 if (inurl[i] == 'save') {
                     var items = JSON.parse(localStorage.getItem('items'));
                     if (items[table[i]] == null) items[table[i]] = [];
+                    
                     for(var e=0;e<items[table[i]].length;e++){
                         if(items[table[i]][e].UID==postParam['UID']){
-                            items[table[i]][e] = postParam;
+                            if(table[i]=='object'){
+                                
+                            }else{
+                                items[table[i]][e] = postParam;
+                                
+                            }
                             var d = {
                                 id: inurl[i],
                                 data: items[table[i]][e]
@@ -724,6 +750,13 @@
             zoom: 16,
             controls: []
         });
+        
+        
+        var im = $(window['formAddr'].getInput('map_autocomplete'));
+        suggestView = new ymaps.SuggestView(im.attr('id'));
+        suggestView.state.events.add('change', suggestViewchange);
+        
+        
         mapG.events.add('actionend', function(e) {
             var v = mapG.getCenter();
             ymaps.geocode(v, { kind: 'street' }).then(
