@@ -26,6 +26,7 @@
         return '<div id="divMap" name="divMap" style="width:280px;height:210px;border:1px solid"></div>';
     }
     var myWins = null;
+    var gridSobst = null;
     window.onhashchange = function() {
         window.location.reload(true);
     }
@@ -38,11 +39,90 @@
         return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0, 3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
     }
 
+    function redrawSubSobst(uid,_dhxForm,kont){
+        var i =0;
+        while( _dhxForm.isItem("phone_" + i)){
+            _dhxForm.removeItem("phone_" + i);
+            i++;
+        }
+
+
+        var i =0;
+        while( _dhxForm.isItem("kont_" + i)){
+            _dhxForm.removeItem("kont_" + i);
+            i++;
+        }
+        while( _dhxForm.isItem("labelS")){
+            _dhxForm.removeItem("labelS");
+        }
+        while( _dhxForm.isItem("kontF")){
+            _dhxForm.removeItem("kontF");
+        }
+        while( _dhxForm.isItem("kontS")){
+            _dhxForm.removeItem("kontS");
+        }
+
+
+        for(var i=0;i<kont.length;i++){
+            _dhxForm.addItem('kont', {
+                type: "block",
+                name: "kont_" + i,
+                blockOffset: 0,
+                offsetLeft: 0,
+                list: [
+                    {type:"label", name:'labelS',label:kont[i].TITLE},
+                    {type:"block", name:"phone_"+i, blockOffset: 0,offsetLeft: 0,list: []},
+//                                {type:"newcolumn"},
+//                                {type:"block", name:"email_", blockOffset: 0,offsetLeft: 0,list: []},
+                ]
+            });
+            for(var e=0;e<kont[i].PHONE.length;e++){
+                _dhxForm.addItem('phone_'+i, {
+                    type: "block",
+                    blockOffset: 0,
+                    offsetLeft:8,
+                    list: [
+                        {type:"label", name:"kontF",labelLeft:0, labelWidth:140,label:kont[i].PHONE[e].LABEL},
+                        {type:"newcolumn"},
+                        {type:"label", name:"kontS", labelLeft:0,label:kont[i].PHONE[e].VALUE},
+                    ]
+                });
+                
+            }                        
+        }
+
+        $('#row_'+uid).parent().css('height',$('#row_'+uid).height()+'px');
+        gridSobst.cells(uid,0).resize();
+    }
+    
+    function endEditSobst(el){
+        // берём данные из грида
+        var uid = $(el).attr('uid');
+        var data = gridSobst.UserData[uid].allField;
+        
+        winSobst(uid,data,false,function(data){
+            gridSobst.UserData[uid].allField = data;
+            gridSobst.setRowData(uid,{
+                col0:data.TITLE,
+                col1:data.TITLE,
+                col2:'<a href="javascript:void(0)" UID="'+data.UID+'" onclick="endEditSobst(this)">Подробнее</a>'
+            });
+            if($('#row_'+data.UID).length != 0) {
+                redrawSubSobst(data.UID,$('#row_'+data.UID).data('dhxForm'),data.kont);
+            }
+            // пытаемся запихнуть в базу....
+            console.log('пытаемся запихнуть в базу....',data);
+            
+        }); 
+    };
+
+
     function editObject(uid) {
         $('.uprMenu').empty();
         var a = $('<href="javascript:void(0)" ><i class="fa fa-floppy-o fa6" aria-hidden="true" item="Добавить обьект"></i></a>' ).appendTo($(".uprMenu"));
         a.click(function(){
             var ob = window['formAddr'].getFormData();
+            ob.sobst = $(window['formAddr']._getItemByName('UID')).data('sobst');
             console.log(ob);
         });
         var a = $('<href="javascript:void(0)" style="margin-left:12px" ><i class="fa fa-undo fa6" aria-hidden="true" item="Добавить обьект"></i></a>' ).appendTo($(".uprMenu"));
@@ -159,10 +239,37 @@
             ]
         });
         window['formAddr'] = myTabbar.tabs('a1').attachForm(formAddr); //new dhtmlXForm("formAddr", formAddr); 
+        
 
         window['formAddr'].attachEvent("onButtonClick", function(name) {
             if (name == 'addSobst') {
-                winSobst();
+                winSobst(null,window['formAddr'].getItemValue('UID'),false,function(data){
+                    // проверяем или есть масив собственников
+                    var sobst =  $(window['formAddr']._getItemByName('UID')).data('sobst');     
+                    if(sobst==undefined){
+                        sobst=[];
+                    }
+                    sobst.push(data);
+                    gridSobst.addRow(data.UID,[
+                        data.TITLE,
+                        data.TITLE,
+                        '<a href="javascript:void(0)" UID="'+data.UID+'" onclick="endEditSobst(this)">Подробнее</a>'
+                    ]);
+                    gridSobst.UserData[data.UID].allField = data;
+                    $(window['formAddr']._getItemByName('UID')).data('sobst',sobst);
+                    // пытаемся записать в базу собственника и контакты
+//                    console.log('пытаемся записать в базу собственника и контакты',data);
+                    saveKont(data.kont);
+
+/*
+Promise.all([img1.ready(), img2.ready()]).then(function() {
+  // все загрузились
+}, function() {
+  // одно или несколько не хочет
+});
+
+*/
+                });
             }
         });
 
@@ -176,14 +283,14 @@
             false // disable close button <-- this one
         );
 
-        var gridSobst = sobstTab.tabs('a1').attachGrid();
+        gridSobst = sobstTab.tabs('a1').attachGrid();
         gridSobst.setImagePath("js/dhtmlx/codebase/imgs/");
         gridSobst.setHeader("&nbsp;,Собственник,Управление");
         gridSobst.setInitWidths("50,*,140");
         gridSobst.setColAlign("left,left,left");
         gridSobst.setColTypes("sub_row,ro,ro");
         //gridSobst.setColSorting("str,str");                    
-        gridSobst.setColumnIds("col0,col1,col1");
+        gridSobst.setColumnIds("col0,col1,col2");
         gridSobst.setNoHeader(true);
         gridSobst.init();
         //gridSobst.setColumnHidden(2, true);
@@ -220,53 +327,27 @@
         })
 */
         gridSobst.attachEvent("onRowCreated", function(rId,rObj,rXml){
-            console.log('---------------',rObj);
+
         });
 
         gridSobst.attachEvent("onSubRowOpen", function(id,state){
             if(state){
+//                if($('#row_'+id).data('dxform')!=undefined) $('#row_'+id).data('dxform').unload();
+//                $('#row_'+id).remove();
                 if($('#row_'+id).length == 0) {
                     this.cells(id,0).setContent('<div id="row_'+id+'" name="row_'+id+'" ></div>');
                     // создаём карточку предосмотра контактов
                     var divG = $('#row_'+id);
-                    dhxForm = new dhtmlXForm('row_'+id, [
+                    var dhxForm = new dhtmlXForm('row_'+id, [
                             {type:"settings",position:"label-left"},
                             {type:"block", name:"kont", list: []},
                             {type:"Container", name:"ots",inputHeight:30},
                         ]);                    
-                    var kont = this.UserData[id].allField.kont;
-                    for(var i=0;i<kont.length;i++){
-                        dhxForm.addItem('kont', {
-                            type: "block",
-                            name: "kont_" + i,
-                            blockOffset: 0,
-                            offsetLeft: 0,
-                            list: [
-                                {type:"label", label:kont[i].TITLE},
-                                {type:"block", name:"phone_"+i, blockOffset: 0,offsetLeft: 0,list: []},
-//                                {type:"newcolumn"},
-//                                {type:"block", name:"email_", blockOffset: 0,offsetLeft: 0,list: []},
-                            ]
-                        });
-                        for(var e=0;e<kont[i].PHONE.length;e++){
-                            dhxForm.addItem('phone_'+i, {
-                                type: "block",
-                                blockOffset: 0,
-                                offsetLeft:8,
-                                list: [
-                                    {type:"label", name:"kontF",labelLeft:0, labelWidth:140,label:kont[i].PHONE[e].LABEL},
-                                    {type:"newcolumn"},
-                                    {type:"label", name:"kontS", labelLeft:0,label:kont[i].PHONE[e].VALUE},
-                                ]
-                            });
-                            
-                        }                        
-                        
-                        
-                    }
-                    this.cells(id,0).resize();
-
-                    console.log(this.UserData[id].allField.kont);
+                    $('#row_'+id).data('dhxForm',dhxForm);
+                    this.UserData[id].allField.kont;
+                    redrawSubSobst(id,dhxForm,this.UserData[id].allField.kont);
+                }else{
+                    redrawSubSobst(id,$('#row_'+id).data('dhxForm'),this.UserData[id].allField.kont);
                 }    
             }
         });
@@ -444,18 +525,16 @@
         gridSobst.setNoHeader(true);
         gridSobst.init();
         //gridSobst.setColumnHidden(2, true);
-        waitGet(['list'], ['klient'], null, function(data) {
-            console.log('klient',data)
+        waitGet(['listSobst'], 'sobst', null, function(data) {
+            console.log('sobst',data)
+//            return;
             for (var i = 0; i < data.length; i++) {
-                console.log(data[0]);
-                for (var e=0;e<data[i].data.length;e++){
-                    gridSobst.addRow(data[i].data[e].UID,[
-                        data[i].data[e].TITLE,
-                        data[i].data[e].TITLE,
-                        '<a href="javascript:void(0)" UID="'+data[i].data[e].UID+'" onclick="winSobst('+"'"+data[i].data[e].UID+"'"+')">Подробнее</a>'
-                    ]);
-                    gridSobst.UserData[data[i].data[e].UID].allField = data[i].data[e];
-                }
+                gridSobst.addRow(data[i].UID,[
+                    data[i].TITLE,
+                    data[i].TITLE,
+                    '<a href="javascript:void(0)" UID="'+data[i].UID+'" onclick="winSobst('+"'"+data[i].UID+"'"+')">Подробнее</a>'
+                ]);
+                gridSobst.UserData[data[i].UID].allField = data[i];
             }
         })
     }

@@ -65,6 +65,7 @@
                                         offsetLeft: 0,
                                         list: [
                                             { type: "input", name: 'PHONE_0', label: 'Телефон', value: '', readonly: false, inputWidth: 130, labelWidth: 'auto' },
+                                            {type:'hidden',name:'PHONEUID_0',value:generateUID()},
                                             { type: "newcolumn" },
                                             { type: "input", name: 'PHONELABEL_0', label: '', value: '', readonly: false, inputWidth: 230, labelWidth: 'auto' },
                                         ]
@@ -104,6 +105,7 @@
                                         offsetLeft: 0,
                                         list: [
                                             { type: "input", name: 'EMAIL_0', label: 'email', value: '', readonly: false, inputWidth: 130, labelWidth: 'auto' },
+                                            {type:'hidden',name:'EMAILUID_0',value:generateUID()},
                                             { type: "newcolumn" },
                                             { type: "input", name: 'EMAILLABEL_0', label: '', value: '', readonly: false, inputWidth: 230, labelWidth: 'auto' },
                                         ]
@@ -159,6 +161,7 @@
                     offsetLeft: 0,
                     list: [
                         { type: "input", name: 'PHONE_' + i, label: 'Телефон', value: '', readonly: false, inputWidth: 130, labelWidth: 'auto' },
+                        {type:'hidden',name:'PHONEUID_'+i,value:generateUID()},
                         { type: "newcolumn" },
                         { type: "input", name: 'PHONELABEL_' + i, label: '', value: '', readonly: false, inputWidth: 190, labelWidth: 'auto' },
                         { type: "newcolumn" },
@@ -182,6 +185,7 @@
                     offsetLeft: 0,
                     list: [
                         { type: "input", name: 'EMAIL_' + i, label: 'email', value: '', readonly: false, inputWidth: 130, labelWidth: 'auto' },
+                        {type:'hidden',name:'EMAILUID_'+i,value:generateUID()},
                         { type: "newcolumn" },
                         { type: "input", name: 'EMAILLABEL_' + i, label: '', value: '', readonly: false, inputWidth: 190, labelWidth: 'auto' },
                         { type: "newcolumn" },
@@ -191,10 +195,8 @@
             }
 
         });
-        console.log(fk);
         $(p).data('kont').push(fk);
         if(item && item.kont){
-            console.log('item',item);
             for(var i=0;i<item.kont.length;i++){
                 if(i>0){
                     formNsob.callEvent("onButtonClick", ['addKont']);
@@ -218,6 +220,10 @@
                         $(p).data('kont')[i].setItemValue('PHONE_'+e,phone[e].VALUE);
                         
                     }
+                    if($(p).data('kont')[i].isItem('PHONEUID_'+e)){
+                        $(p).data('kont')[i].setItemValue('PHONEUID_'+e,phone[e].UID);
+                        
+                    }
                 }
 
                 var phone = item.kont[i].EMAIL;
@@ -233,17 +239,18 @@
                         $(p).data('kont')[i].setItemValue('EMAIL_'+e,phone[e].VALUE);
                         
                     }
+                    if($(p).data('kont')[i].isItem('EMAILUID_'+e)){
+                        $(p).data('kont')[i].setItemValue('EMAILUID_'+e,phone[e].UID);
+                    }
                 }
 
 
             }
             
         }
-        console.log($(p).data('kont').length);
-
     }
     var formNsob = null;
-    function winSobst(id,editflag) {
+    function winSobst(id,puid,editflag,fun) {
         myWins = new dhtmlXWindows({
             image_path: "/bitrix24/js/dhtmlx/imgs/",
             skin: "dhx_material"
@@ -275,6 +282,7 @@
             list: [
                 { type: "button", name: "save", value: "Сохранить" },
                 { type: "hidden", name: "UID", value: uid },
+                { type: "hidden", name: "PUID", value: puid.UID },
 
                 { type: "input", name: 'TITLE', label: 'Наименование', value: '', readonly: false, inputWidth: iw, labelWidth: lw },
                 { type: "input", name: 'REM', label: 'Комментарий', value: '', readonly: false, inputWidth: iw, labelWidth: lw, inputHeight: 60, rows: 3 },
@@ -326,7 +334,8 @@
                         while (kont[i].isItem('PHONE_' + e)) {
                             var d = {
                                 VALUE: kont[i].getItemValue('PHONE_' + e),
-                                LABEL: kont[i].getItemValue('PHONELABEL_' + e)
+                                LABEL: kont[i].getItemValue('PHONELABEL_' + e),
+                                UID:kont[i].getItemValue('PHONEUID_' + e)
                             };
                             k_.PHONE.push(d);
                             e++;
@@ -336,7 +345,8 @@
                         while (kont[i].isItem('EMAIL_' + e)) {
                             var d = {
                                 VALUE: kont[i].getItemValue('EMAIL_' + e),
-                                LABEL: kont[i].getItemValue('EMAILLABEL_' + e)
+                                LABEL: kont[i].getItemValue('EMAILLABEL_' + e),
+                                UID:kont[i].getItemValue('EMAILUID_' + e)
                             };
                             k_.EMAIL.push(d);
                             e++;
@@ -345,7 +355,18 @@
                         outOB.kont.push(k_);
                     }
                 }
-                console.log(outOB);
+                
+                
+//                db.put('sobst', outOB);
+                //console.log(outOB);
+                myWins.window('newOrg').close();
+                fun(outOB);
+//                waitGet(['saveSobst'], ['sobst'], outOB, function(data) {
+//                    console.log(data);
+//                })
+                
+                
+                
 /*                
                 if(!id){
                     waitGet(['add'], ['klient'], outOB, function(data) {
@@ -364,14 +385,12 @@
             }
         });
         if(id){
-            waitGet(['edit'],['klient'],id,function(data) {
-                var item =  data[0].data;
+                var item =  puid;
                 for (var prop in item) {
                     if (formNsob.isItem(prop)) {
                         formNsob.setItemValue(prop, item[prop]);
                     }
                 }
                 createFormKont($(formNsob._getItemByName('divKont')),item);
-            })
         }
     }
